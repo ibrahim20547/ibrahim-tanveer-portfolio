@@ -1,0 +1,23 @@
+﻿# Node dependencies & build
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*.class
+.env
+env/
+venv/
+*.sqlite3
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
