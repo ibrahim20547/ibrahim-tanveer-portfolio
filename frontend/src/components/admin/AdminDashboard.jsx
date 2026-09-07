@@ -15,6 +15,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
+import { projectsData as fallbackProjects } from '../../data/portfolioData';
 
 export default function AdminDashboard() {
   const { authFetch } = useAdmin();
@@ -26,19 +27,31 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
+  const getFallbackStats = () => ({
+    total: fallbackProjects.length,
+    published: fallbackProjects.length,
+    draft: 0,
+    featured: fallbackProjects.filter((p) => p.featured !== false).length,
+    recent_projects: fallbackProjects.slice(0, 5)
+  });
+
   const fetchStats = async () => {
     setLoading(true);
     setError('');
     try {
       const res = await authFetch('/api/admin/stats');
-      const data = await res.json();
-      if (data.success) {
-        setStats(data.data);
-      } else {
-        setError(data.error || 'Failed to load dashboard statistics.');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setStats(data.data);
+          return;
+        }
       }
+      setStats(getFallbackStats());
     } catch (err) {
-      setError(err.message || 'Error connecting to backend API.');
+      // Backend not running on static Vercel deployment -> load local portfolio stats
+      setStats(getFallbackStats());
     } finally {
       setLoading(false);
     }

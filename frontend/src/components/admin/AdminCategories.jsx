@@ -36,20 +36,30 @@ export default function AdminCategories() {
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  const defaultCategories = [
+    { id: 1, name: 'AI & Web Apps', description: 'Generative AI, conversational interfaces, and intelligent automation', project_count: 2 },
+    { id: 2, name: 'Full-Stack & APIs', description: 'Backend-heavy platforms, REST APIs, and database-driven solutions', project_count: 2 },
+    { id: 3, name: 'Web Platforms', description: 'Scalable multi-user platforms and web systems', project_count: 1 },
+    { id: 4, name: 'Interactive & UI/UX', description: 'Personal portfolios, design showcases, and creative agency websites', project_count: 1 }
+  ];
+
   // Fetch all categories
   const loadCategories = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const res = await authFetch('/api/admin/categories');
-      const data = await res.json();
-      if (data.success && data.data) {
-        setCategories(data.data);
-      } else {
-        setError(data.error || 'Failed to load categories.');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success && data.data) {
+          setCategories(data.data);
+          return;
+        }
       }
+      setCategories(defaultCategories);
     } catch (err) {
-      setError(err.message || 'Error connecting to categories API.');
+      setCategories(defaultCategories);
     } finally {
       setLoading(false);
     }

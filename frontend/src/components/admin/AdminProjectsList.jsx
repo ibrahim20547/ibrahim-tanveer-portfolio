@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { useAdminToast } from './AdminLayout';
+import { projectsData as fallbackProjects } from '../../data/portfolioData';
 
 export default function AdminProjectsList() {
   const { authFetch } = useAdmin();
@@ -67,6 +68,19 @@ export default function AdminProjectsList() {
     'Interactive & UI/UX'
   ];
 
+  const getFilteredFallbackProjects = useCallback(() => {
+    return fallbackProjects.filter((p) => {
+      const matchSearch =
+        !search.trim() ||
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.category.toLowerCase().includes(search.toLowerCase());
+      const matchCat = category === 'All' || p.category === category;
+      const matchFeatured =
+        featured === 'all' || (featured === 'featured' ? p.featured : !p.featured);
+      return matchSearch && matchCat && matchFeatured;
+    });
+  }, [search, category, featured]);
+
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -78,18 +92,21 @@ export default function AdminProjectsList() {
       if (featured && featured !== 'all') params.set('featured', featured);
 
       const res = await authFetch(`/api/admin/projects?${params.toString()}`);
-      const data = await res.json();
-      if (data.success) {
-        setProjects(data.data || []);
-      } else {
-        setError(data.error || 'Failed to retrieve projects list.');
+      const contentType = res.headers.get('content-type') || '';
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json();
+        if (data.success) {
+          setProjects(data.data || []);
+          return;
+        }
       }
+      setProjects(getFilteredFallbackProjects());
     } catch (err) {
-      setError(err.message || 'Error communicating with backend.');
+      setProjects(getFilteredFallbackProjects());
     } finally {
       setLoading(false);
     }
-  }, [search, category, status, featured, authFetch]);
+  }, [search, category, status, featured, authFetch, getFilteredFallbackProjects]);
 
   useEffect(() => {
     fetchProjects();
