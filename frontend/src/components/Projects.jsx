@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowUpRight, ExternalLink, Sparkles, Check, Info, Code2 } from 'lucide-react';
 import { projectsData as fallbackProjects } from '../data/portfolioData';
+import { parseApiResponse } from '../utils/apiHelper';
 
 export default function Projects({ onSelectProject }) {
   const [projects, setProjects] = useState(fallbackProjects);
@@ -15,11 +16,11 @@ export default function Projects({ onSelectProject }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, target: 'antigravity' })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         alert(`✅ Opened original ${projectTitle} workspace in Antigravity IDE!\nPath: ${data.path}`);
       } else {
-        alert(`❌ Could not open: ${data.error}`);
+        alert(`❌ Could not open: ${data?.error || 'Unknown error'}`);
       }
     } catch (err) {
       alert(`Workspace error: ${err.message}`);
@@ -27,14 +28,11 @@ export default function Projects({ onSelectProject }) {
   };
 
   useEffect(() => {
-    // Fetch published projects from Flask backend
+    // Fetch published projects from backend API
     fetch('/api/projects')
-      .then((res) => {
-        if (!res.ok) throw new Error('API returned ' + res.status);
-        return res.json();
-      })
+      .then((res) => parseApiResponse(res))
       .then((data) => {
-        if (data && Array.isArray(data.data)) {
+        if (data && Array.isArray(data.data) && data.data.length > 0) {
           // Merge API data with rich fallback fields if available
           const merged = data.data.map((apiItem) => {
             const fallback = fallbackProjects.find((f) => f.id === apiItem.id) || {};

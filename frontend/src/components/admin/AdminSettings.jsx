@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Shield, User, Mail, Lock, Key, Save, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { useAdminToast } from './AdminLayout';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 export default function AdminSettings() {
   const { admin, authFetch, updateCurrentAdmin } = useAdmin();
@@ -25,14 +26,9 @@ export default function AdminSettings() {
     e.preventDefault();
     setError('');
 
-    if (!username.trim() || !email.trim()) {
-      setError('Username and email cannot be empty.');
-      return;
-    }
-
     if (newPassword) {
       if (!currentPassword) {
-        setError('Please provide your current password to set a new password.');
+        setError('Current password is required to change password.');
         return;
       }
       if (newPassword.length < 6) {
@@ -40,7 +36,7 @@ export default function AdminSettings() {
         return;
       }
       if (newPassword !== confirmPassword) {
-        setError('New password and confirmation do not match.');
+        setError('New passwords do not match.');
         return;
       }
     }
@@ -60,16 +56,16 @@ export default function AdminSettings() {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      const data = await parseApiResponse(res);
 
-      if (data.success) {
+      if (data && data.success) {
         updateCurrentAdmin(data.admin, data.token);
         showToast('Admin profile and security settings updated successfully!');
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        setError(data.error || 'Failed to update admin settings.');
+        setError(data?.error || 'Failed to update admin settings.');
       }
     } catch (err) {
       setError(err.message || 'Error updating settings.');

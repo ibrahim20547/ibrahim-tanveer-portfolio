@@ -21,6 +21,7 @@ import {
 import { useAdmin } from '../../context/AdminContext';
 import { useAdminToast } from './AdminLayout';
 import { projectsData as fallbackProjects } from '../../data/portfolioData';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 export default function AdminProjectsList() {
   const { authFetch } = useAdmin();
@@ -34,11 +35,11 @@ export default function AdminProjectsList() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, target: 'antigravity' })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         showToast(`✅ Opened ${projectTitle} in Antigravity IDE`, 'success');
       } else {
-        showToast(`❌ ${data.error}`, 'error');
+        showToast(`❌ ${data?.error || 'Could not open workspace'}`, 'error');
       }
     } catch (err) {
       showToast(`Open failed: ${err.message}`, 'error');
@@ -92,13 +93,10 @@ export default function AdminProjectsList() {
       if (featured && featured !== 'all') params.set('featured', featured);
 
       const res = await authFetch(`/api/admin/projects?${params.toString()}`);
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success) {
-          setProjects(data.data || []);
-          return;
-        }
+      const data = await parseApiResponse(res);
+      if (data && data.success && Array.isArray(data.data)) {
+        setProjects(data.data);
+        return;
       }
       setProjects(getFilteredFallbackProjects());
     } catch (err) {
@@ -120,8 +118,8 @@ export default function AdminProjectsList() {
         method: 'PUT',
         body: JSON.stringify({ status: newStatus })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         setProjects((prev) =>
           prev.map((p) => (p.id === project.id ? { ...p, status: newStatus } : p))
         );
@@ -129,7 +127,7 @@ export default function AdminProjectsList() {
           `Project '${project.title}' is now ${newStatus === 'published' ? 'Published' : 'Draft'}.`
         );
       } else {
-        showToast(data.error || 'Failed to update status', 'error');
+        showToast(data?.error || 'Failed to update status', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Error updating status', 'error');
@@ -144,8 +142,8 @@ export default function AdminProjectsList() {
         method: 'PUT',
         body: JSON.stringify({ featured: newFeatured })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         setProjects((prev) =>
           prev.map((p) => (p.id === project.id ? { ...p, featured: newFeatured } : p))
         );
@@ -153,7 +151,7 @@ export default function AdminProjectsList() {
           `Project '${project.title}' marked as ${newFeatured ? 'Featured' : 'Standard'}.`
         );
       } else {
-        showToast(data.error || 'Failed to update featured flag', 'error');
+        showToast(data?.error || 'Failed to update featured flag', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Error updating featured status', 'error');
@@ -168,13 +166,13 @@ export default function AdminProjectsList() {
       const res = await authFetch(`/api/admin/projects/${projectToDelete.id}`, {
         method: 'DELETE'
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
         showToast(`Project '${projectToDelete.title}' has been deleted.`);
         setProjectToDelete(null);
       } else {
-        showToast(data.error || 'Failed to delete project', 'error');
+        showToast(data?.error || 'Failed to delete project', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Error deleting project', 'error');

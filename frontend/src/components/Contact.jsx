@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Send, Mail, Github, Linkedin, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { developerInfo } from '../data/portfolioData';
+import { parseApiResponse } from '../utils/apiHelper';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -18,13 +19,7 @@ export default function Contact() {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-    if (status.error) {
-      setStatus({ ...status, error: null });
-    }
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
@@ -51,10 +46,10 @@ export default function Contact() {
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
+      const data = await parseApiResponse(response);
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to submit inquiry. Please try again.');
+      if (!data || !data.success) {
+        throw new Error(data?.error || 'Failed to submit inquiry. Please try again.');
       }
 
       setStatus({

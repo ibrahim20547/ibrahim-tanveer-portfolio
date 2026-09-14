@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { projectsData as fallbackProjects } from '../../data/portfolioData';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 export default function AdminDashboard() {
   const { authFetch } = useAdmin();
@@ -40,17 +41,14 @@ export default function AdminDashboard() {
     setError('');
     try {
       const res = await authFetch('/api/admin/stats');
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success) {
-          setStats(data.data);
-          return;
-        }
+      const data = await parseApiResponse(res);
+      if (data && data.success && data.data) {
+        setStats(data.data);
+        return;
       }
       setStats(getFallbackStats());
     } catch (err) {
-      // Backend not running on static Vercel deployment -> load local portfolio stats
+      // Backend fallback -> load local portfolio stats
       setStats(getFallbackStats());
     } finally {
       setLoading(false);
@@ -64,11 +62,11 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ projectId, target: 'antigravity' })
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         alert(`✅ Opened original project workspace in Antigravity IDE!\nPath: ${data.path}`);
       } else {
-        alert(`❌ Could not open: ${data.error}`);
+        alert(`❌ Could not open: ${data?.error || 'Unknown error'}`);
       }
     } catch (err) {
       alert(`Error: ${err.message}`);

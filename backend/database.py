@@ -1,13 +1,39 @@
 import sqlite3
 import os
+import shutil
 import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'portfolio.db')
+def get_db_path():
+    """Resolve database path, using /tmp in serverless / read-only environments"""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    local_db = os.path.join(base_dir, 'portfolio.db')
+    
+    # Check if running in Vercel / AWS Lambda or if directory is read-only
+    is_serverless = bool(
+        os.environ.get('VERCEL') or
+        os.environ.get('AWS_LAMBDA_FUNCTION_NAME') or
+        os.environ.get('LAMBDA_TASK_ROOT') or
+        not os.access(base_dir, os.W_OK)
+    )
+    
+    if is_serverless:
+        tmp_db = os.path.join('/tmp', 'portfolio.db')
+        if not os.path.exists(tmp_db) and os.path.exists(local_db):
+            try:
+                shutil.copy2(local_db, tmp_db)
+            except Exception as e:
+                pass
+        return tmp_db
+    
+    return local_db
+
+DB_PATH = get_db_path()
 
 def get_db_connection():
-    conn = sqlite3.connect(DB_PATH)
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     return conn
 

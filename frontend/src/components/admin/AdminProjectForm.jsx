@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { useAdminToast } from './AdminLayout';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 export default function AdminProjectForm() {
   const { projectId } = useParams();
@@ -75,11 +76,11 @@ export default function AdminProjectForm() {
       const fetchProject = async () => {
         try {
           const res = await authFetch(`/api/admin/projects/${projectId}`);
-          const data = await res.json();
-          if (data.success && data.data) {
-            const p = data.data;
+          const data = await parseApiResponse(res);
+          if (data && data.success && (data.data || data.website)) {
+            const p = data.data || data.website;
             setFormData({
-              title: p.title || '',
+              title: p.title || p.name || '',
               subtitle: p.subtitle || '',
               category: predefinedCategories.includes(p.category) ? p.category : 'Other (Custom)',
               customCategory: predefinedCategories.includes(p.category) ? '' : p.category,
@@ -89,16 +90,16 @@ export default function AdminProjectForm() {
               solution: p.solution || '',
               technologies: Array.isArray(p.technologies) ? p.technologies : [],
               features: Array.isArray(p.features) ? p.features : [],
-              image_url: p.image_url || '',
+              image_url: p.image_url || p.image || '',
               screenshots: Array.isArray(p.screenshots) ? p.screenshots : [],
-              live_demo_url: p.live_demo_url || '',
-              github_url: p.github_url || '',
+              live_demo_url: p.live_demo_url || p.url || '',
+              github_url: p.github_url || p.githubUrl || '',
               status: p.status || 'published',
               featured: Boolean(p.featured),
               sort_order: p.sort_order ?? 0
             });
           } else {
-            setError(data.error || 'Failed to load project details.');
+            setError(data?.error || 'Failed to load project details.');
           }
         } catch (err) {
           setError(err.message || 'Error fetching project.');
@@ -126,9 +127,9 @@ export default function AdminProjectForm() {
     const fetchCategories = async () => {
       try {
         const res = await fetch('/api/categories');
-        const data = await res.json();
-        if (data.success && data.data && data.data.length > 0) {
-          const names = data.data.map((c) => c.name);
+        const data = await parseApiResponse(res);
+        if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const names = data.data.map((c) => c.name || c);
           setAvailableCategories(names);
         }
       } catch (err) {
@@ -143,8 +144,8 @@ export default function AdminProjectForm() {
     const fetchMedia = async () => {
       try {
         const res = await authFetch('/api/admin/media-library');
-        const data = await res.json();
-        if (data.success) {
+        const data = await parseApiResponse(res);
+        if (data && data.success) {
           setMediaLibrary(data.data || []);
         }
       } catch (err) {
@@ -230,12 +231,12 @@ export default function AdminProjectForm() {
         method: 'POST',
         body: uploadData
       });
-      const data = await res.json();
-      if (data.success && data.url) {
+      const data = await parseApiResponse(res);
+      if (data && data.success && data.url) {
         setFormData((prev) => ({ ...prev, image_url: data.url }));
         showToast('Image uploaded and set as project thumbnail.');
       } else {
-        showToast(data.error || 'Failed to upload image.', 'error');
+        showToast(data?.error || 'Failed to upload image.', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Error uploading image.', 'error');
@@ -317,9 +318,9 @@ export default function AdminProjectForm() {
         body: JSON.stringify(payload)
       });
 
-      const data = await res.json();
+      const data = await parseApiResponse(res);
 
-      if (data.success) {
+      if (data && data.success) {
         showToast(
           isEditing
             ? `Website '${title}' updated successfully!`
@@ -327,7 +328,7 @@ export default function AdminProjectForm() {
         );
         navigate('/admin/websites');
       } else {
-        setError(data.error || 'Failed to save website.');
+        setError(data?.error || 'Failed to save website.');
       }
     } catch (err) {
       setError(err.message || 'Error saving website.');

@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import { parseApiResponse } from '../utils/apiHelper';
+import { projectsData as fallbackProjects } from '../data/portfolioData';
 
 export default function ProjectDetailsPage({ theme, toggleTheme }) {
   const { projectId } = useParams();
@@ -29,15 +31,27 @@ export default function ProjectDetailsPage({ theme, toggleTheme }) {
       setError('');
       try {
         const res = await fetch(`/api/projects/${projectId}`);
-        const data = await res.json();
-        if (data.success && data.data) {
+        const data = await parseApiResponse(res);
+        if (data && data.success && data.data) {
           setProject(data.data);
           setActiveImage(data.data.image_url);
         } else {
-          setError(data.error || 'Project not found.');
+          const fallback = fallbackProjects.find((p) => p.id === projectId);
+          if (fallback) {
+            setProject(fallback);
+            setActiveImage(fallback.image_url);
+          } else {
+            setError(data?.error || 'Project not found.');
+          }
         }
       } catch (err) {
-        setError('Failed to load project details.');
+        const fallback = fallbackProjects.find((p) => p.id === projectId);
+        if (fallback) {
+          setProject(fallback);
+          setActiveImage(fallback.image_url);
+        } else {
+          setError('Failed to load project details.');
+        }
       } finally {
         setLoading(false);
       }

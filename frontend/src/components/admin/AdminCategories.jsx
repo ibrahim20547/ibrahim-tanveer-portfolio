@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { useAdminToast } from './AdminLayout';
+import { parseApiResponse } from '../../utils/apiHelper';
 
 export default function AdminCategories() {
   const { authFetch } = useAdmin();
@@ -24,18 +25,19 @@ export default function AdminCategories() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Modal State for Add / Edit
+  // Form Modal state
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null); // null = Add mode, object = Edit mode
+  const [editingCategory, setEditingCategory] = useState(null);
   const [catName, setCatName] = useState('');
   const [catDesc, setCatDesc] = useState('');
-  const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState('');
 
-  // Delete Confirmation Modal
+  // Delete Confirm Modal
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Default Categories Fallback
   const defaultCategories = [
     { id: 1, name: 'AI & Web Apps', description: 'Generative AI, conversational interfaces, and intelligent automation', project_count: 2 },
     { id: 2, name: 'Full-Stack & APIs', description: 'Backend-heavy platforms, REST APIs, and database-driven solutions', project_count: 2 },
@@ -49,13 +51,10 @@ export default function AdminCategories() {
     setError('');
     try {
       const res = await authFetch('/api/admin/categories');
-      const contentType = res.headers.get('content-type') || '';
-      if (res.ok && contentType.includes('application/json')) {
-        const data = await res.json();
-        if (data.success && data.data) {
-          setCategories(data.data);
-          return;
-        }
+      const data = await parseApiResponse(res);
+      if (data && data.success && Array.isArray(data.data)) {
+        setCategories(data.data);
+        return;
       }
       setCategories(defaultCategories);
     } catch (err) {
@@ -106,13 +105,13 @@ export default function AdminCategories() {
           method: 'PUT',
           body: JSON.stringify({ name: trimmedName, description: catDesc.trim() })
         });
-        const data = await res.json();
-        if (data.success) {
+        const data = await parseApiResponse(res);
+        if (data && data.success) {
           showToast(`Category '${trimmedName}' updated successfully.`);
           setModalOpen(false);
           loadCategories();
         } else {
-          setFormError(data.error || 'Failed to update category.');
+          setFormError(data?.error || 'Failed to update category.');
         }
       } else {
         // Create
@@ -120,13 +119,13 @@ export default function AdminCategories() {
           method: 'POST',
           body: JSON.stringify({ name: trimmedName, description: catDesc.trim() })
         });
-        const data = await res.json();
-        if (data.success) {
+        const data = await parseApiResponse(res);
+        if (data && data.success) {
           showToast(`Category '${trimmedName}' created successfully.`);
           setModalOpen(false);
           loadCategories();
         } else {
-          setFormError(data.error || 'Failed to create category.');
+          setFormError(data?.error || 'Failed to create category.');
         }
       }
     } catch (err) {
@@ -144,13 +143,13 @@ export default function AdminCategories() {
       const res = await authFetch(`/api/admin/categories/${categoryToDelete.id}`, {
         method: 'DELETE'
       });
-      const data = await res.json();
-      if (data.success) {
+      const data = await parseApiResponse(res);
+      if (data && data.success) {
         showToast(data.message || `Category '${categoryToDelete.name}' deleted.`);
         setCategoryToDelete(null);
         loadCategories();
       } else {
-        showToast(data.error || 'Failed to delete category.', 'error');
+        showToast(data?.error || 'Failed to delete category.', 'error');
       }
     } catch (err) {
       showToast(err.message || 'Error deleting category.', 'error');

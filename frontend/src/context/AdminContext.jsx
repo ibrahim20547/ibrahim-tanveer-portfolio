@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { parseApiResponse } from '../utils/apiHelper';
 
 const AdminContext = createContext(null);
 
@@ -72,33 +73,29 @@ export function AdminProvider({ children }) {
           headers: { Authorization: `Bearer ${savedToken}` }
         });
 
-        const contentType = res.headers.get('content-type') || '';
-        if (res.ok && contentType.includes('application/json')) {
-          const data = await res.json();
-          if (data.success && data.admin) {
-            setAdmin(data.admin);
-            localStorage.setItem(ADMIN_KEY, JSON.stringify(data.admin));
-          } else {
-            logout();
-          }
+        const data = await parseApiResponse(res);
+        if (data && data.success && data.admin) {
+          setAdmin(data.admin);
+          localStorage.setItem(ADMIN_KEY, JSON.stringify(data.admin));
         } else if (res.status === 401) {
           logout();
         } else {
-          // If backend returned HTML (e.g. static Vercel rewrite or network issue)
-          // preserve valid saved admin session
           const savedAdmin = localStorage.getItem(ADMIN_KEY);
           if (savedAdmin) {
             setAdmin(JSON.parse(savedAdmin));
           }
         }
       } catch (err) {
-        console.warn('Admin session verification notice:', err);
-        const savedAdmin = localStorage.getItem(ADMIN_KEY);
-        if (savedAdmin) {
-          try {
-            setAdmin(JSON.parse(savedAdmin));
-          } catch {
-            logout();
+        if (err.status === 401) {
+          logout();
+        } else {
+          const savedAdmin = localStorage.getItem(ADMIN_KEY);
+          if (savedAdmin) {
+            try {
+              setAdmin(JSON.parse(savedAdmin));
+            } catch {
+              logout();
+            }
           }
         }
       } finally {
@@ -120,25 +117,20 @@ export function AdminProvider({ children }) {
         body: JSON.stringify({ identifier, password })
       });
 
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('application/json')) {
-        const data = await res.json();
+      const data = await parseApiResponse(res);
 
-        if (res.ok && data.success) {
-          setToken(data.token);
-          setAdmin(data.admin);
-          localStorage.setItem(TOKEN_KEY, data.token);
-          localStorage.setItem(ADMIN_KEY, JSON.stringify(data.admin));
-          return { success: true, admin: data.admin };
-        }
-
-        // If backend explicitly rejected invalid credentials
-        if (res.status === 401 || res.status === 400) {
-          return { success: false, error: data.error || 'Invalid username or password.' };
-        }
+      if (data && data.success && data.token) {
+        setToken(data.token);
+        setAdmin(data.admin);
+        localStorage.setItem(TOKEN_KEY, data.token);
+        localStorage.setItem(ADMIN_KEY, JSON.stringify(data.admin));
+        return { success: true, admin: data.admin };
       }
     } catch (err) {
-      console.info('Backend login endpoint unavailable, checking credentials locally...');
+      if (err.status === 401 || err.status === 400) {
+        return { success: false, error: err.message || 'Invalid username or password.' };
+      }
+      console.info('Backend login endpoint notice, attempting local verification...');
     }
 
     // Client-side fallback authentication for Vercel static deployments
