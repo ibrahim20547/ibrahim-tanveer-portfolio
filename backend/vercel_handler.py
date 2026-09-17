@@ -4,7 +4,7 @@ import sys
 # Ensure both root directory and backend directory are in python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 root_dir = os.path.dirname(current_dir)
-backend_dir = os.path.join(root_dir, 'backend')
+backend_dir = current_dir
 
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
@@ -13,5 +13,5 @@ if backend_dir not in sys.path:
 
 from backend.app import app
 
-# Vercel Serverless entry point
+# Backend WSGI / Python Serverless application reference
 # 'app' is the Flask application instance
