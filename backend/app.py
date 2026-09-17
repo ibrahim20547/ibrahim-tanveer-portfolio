@@ -882,6 +882,7 @@ PROJECT_FOLDER_CANDIDATES = {
     'lms': [r'C:\Users\Microsoft\Desktop\LMS', r'C:\Users\Microsoft\Desktop\L M S'],
     'aurex-ai-studio': [r'C:\Users\Microsoft\Desktop\Aurex'],
     'kips-websites': [r'C:\Users\Microsoft\Desktop\Kips Websites'],
+    'kids-garments': [r'C:\Users\Microsoft\Desktop\Kids Garments'],
     'ibrahim-tanveer-portfolio': [r'C:\Users\Microsoft\Desktop\Ibrahim Tanveer\'s portfolio'],
     'ibrahim': [r'C:\Users\Microsoft\Desktop\ibrahim']
 }

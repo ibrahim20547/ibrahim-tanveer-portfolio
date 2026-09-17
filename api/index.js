@@ -185,6 +185,37 @@ const initialProjects = [
     featured: false,
     sort_order: 8,
     screenshots: []
+  },
+  {
+    id: "kids-garments",
+    title: "Kids Garments",
+    name: "Kids Garments",
+    subtitle: "Modern Kids Fashion & Garments Store",
+    category: "E-Commerce",
+    description: "A modern and responsive e-commerce website for kids garments, featuring boys' and girls' clothing, product categories, product details, shopping cart, and a clean shopping experience.",
+    overview: "Kids Garments is a modern online clothing store designed specifically for children's fashion. The website provides a clean and user-friendly shopping experience with organized categories, product listings, product details, cart functionality, responsive design, and a professional kids-fashion visual style.",
+    problem: "Create a dedicated online shopping experience for kids clothing where parents can easily browse products, view product details, select sizes and colors, and manage their shopping cart.",
+    solution: "The website uses a modern frontend architecture with reusable components, responsive layouts, product/category sections, shopping cart functionality, and an admin management system for managing store content.",
+    technologies: ["React.js", "JavaScript", "HTML5", "CSS3", "Vite", "Python", "Flask", "SQLite", "REST APIs"],
+    features: [
+      "Modern responsive kids garments store",
+      "Boys clothing section & girls clothing section",
+      "Product categories & faceted browsing",
+      "Size and color variant selection",
+      "Shopping cart & checkout experience",
+      "Admin panel & inventory management",
+      "Pakistan/PKR localized e-commerce support"
+    ],
+    image_url: "/assets/projects/kids_garments.png",
+    image: "/assets/projects/kids_garments.png",
+    live_demo_url: "https://kids-garments-two.vercel.app",
+    url: "https://kids-garments-two.vercel.app",
+    github_url: "https://github.com/ibrahim20547/kids-garments",
+    githubUrl: "https://github.com/ibrahim20547/kids-garments",
+    status: "published",
+    featured: true,
+    sort_order: 9,
+    screenshots: []
   }
 ];
 

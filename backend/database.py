@@ -298,6 +298,33 @@ def init_db():
                 "live_demo_url": "#demo-ai-house-designer",
                 "github_url": "https://github.com/ibrahimtanveer",
                 "sort_order": 6
+            },
+            {
+                "id": "kids-garments",
+                "title": "Kids Garments",
+                "subtitle": "Modern Kids Fashion & Garments Store",
+                "category": "E-Commerce",
+                "description": "A modern and responsive e-commerce website for kids garments, featuring boys' and girls' clothing, product categories, product details, shopping cart, and a clean shopping experience.",
+                "overview": "Kids Garments is a modern online clothing store designed specifically for children's fashion. The website provides a clean and user-friendly shopping experience with organized categories, product listings, product details, cart functionality, responsive design, and a professional kids-fashion visual style.",
+                "problem": "Create a dedicated online shopping experience for kids clothing where parents can easily browse products, view product details, select sizes and colors, and manage their shopping cart.",
+                "solution": "The website uses a modern frontend architecture with reusable components, responsive layouts, product/category sections, shopping cart functionality, and an admin management system for managing store content.",
+                "features": json.dumps([
+                    "Modern responsive kids garments store",
+                    "Boys clothing section & girls clothing section",
+                    "Organized product categories and faceted filtering",
+                    "Interactive product cards & full product details modal",
+                    "Size, color, and stock variant selections",
+                    "Persistent shopping cart and checkout flow",
+                    "Comprehensive admin panel for product & inventory management",
+                    "Pakistan/PKR localized e-commerce support"
+                ]),
+                "technologies": json.dumps([
+                    "React.js", "JavaScript", "HTML5", "CSS3", "Vite", "Python", "Flask", "SQLite", "REST APIs"
+                ]),
+                "image_url": "/assets/projects/kids_garments.png",
+                "live_demo_url": "https://kids-garments-two.vercel.app",
+                "github_url": "https://github.com/ibrahim20547/kids-garments",
+                "sort_order": 7
             }
         ]
 
